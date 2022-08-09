@@ -1,0 +1,24 @@
+version: '3'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"

@@ -1,0 +1,8 @@
+server:
+  port: 8081
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+  redis:
+    host: localhost
+    port: 6379
