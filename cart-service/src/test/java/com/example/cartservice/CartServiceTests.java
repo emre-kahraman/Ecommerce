@@ -1,5 +1,6 @@
 package com.example.cartservice;
 
+import com.example.cartservice.dto.CreateOrderRequest;
 import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartRepository;
@@ -11,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -18,6 +20,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +32,9 @@ public class CartServiceTests {
 
     @Mock
     CartRepository cartRepository;
+
+    @Mock
+    KafkaTemplate<String, CreateOrderRequest> kafkaTemplate;
 
     @Test
     public void itShouldReturnCartById(){
@@ -119,5 +125,28 @@ public class CartServiceTests {
 
         assertEquals(cart.getCartItems().contains(cartItem), false);
         assertEquals(cart.getTotalPrice(), BigDecimal.valueOf(0));
+    }
+
+    @Test
+    public void itShouldCreateOrder(){
+        Cart cart = Cart.builder().userId("1").userName("test")
+                .userLastName("test").email("test")
+                .address("test").cartItems(new HashSet<>()).totalPrice(BigDecimal.valueOf(0)).build();
+
+        CartItem cartItem = CartItem.builder().productId("1").
+                productName("test")
+                .unitPrice(BigDecimal.valueOf(10))
+                .quantity(1).build();
+        cart.addCartItem(cartItem);
+
+        when(cartRepository.getCartByUserId(cart.getUserId())).thenReturn(Optional.of(cart));
+
+        when(kafkaTemplate.send(eq("orders"), any(), any())).thenReturn(null);
+
+        ResponseEntity<HttpStatus> responseEntity = cartService.createOrder(cart.getUserId());
+
+        assertEquals(cart.getCartItems().size(), 0);
+        assertEquals(cart.getTotalPrice(), BigDecimal.valueOf(0));
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
     }
 }

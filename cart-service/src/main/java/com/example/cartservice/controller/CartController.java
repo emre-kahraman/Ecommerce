@@ -1,9 +1,11 @@
 package com.example.cartservice.controller;
 
+import com.example.cartservice.dto.CreateOrderRequest;
 import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.service.CartService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +24,11 @@ public class CartController {
     @GetMapping("/getCartByUserId/{userId}")
     public ResponseEntity<Cart> getCartByUserId(@PathVariable String userId){
         return cartService.getCartByUserId(userId);
+    }
+
+    @PostMapping("/createOrder/{userId}")
+    public ResponseEntity<HttpStatus> createOrder(@PathVariable String userId){
+        return cartService.createOrder(userId);
     }
 
     @DeleteMapping("/{userId}/removeCartItem/{productId}")

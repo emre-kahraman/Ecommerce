@@ -1,5 +1,6 @@
 package com.example.cartservice.service;
 
+import com.example.cartservice.dto.CreateOrderRequest;
 import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartRepository;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -26,6 +28,7 @@ import java.util.Optional;
 public class CartService {
 
     private final CartRepository cartRepository;
+    private final KafkaTemplate<String, CreateOrderRequest> kafkaTemplate;
     public ResponseEntity<Cart> getCartById(String id) {
         Optional<Cart> cart = cartRepository.findById(id);
         if(cart.isEmpty())
@@ -71,5 +74,18 @@ public class CartService {
         cart.get().removeCartItem(cartItem);
         Cart savedCart = cartRepository.save(cart.get());
         return new ResponseEntity<>(savedCart, HttpStatus.OK);
+    }
+
+    public ResponseEntity<HttpStatus> createOrder(String userId) {
+        Optional<Cart> cart = cartRepository.getCartByUserId(userId);
+        if(cart.isEmpty())
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        CreateOrderRequest createOrderRequest = new CreateOrderRequest(cart.get().getUserId(), cart.get().getUserName()
+        , cart.get().getUserLastName(), cart.get().getEmail(), cart.get().getAddress(), cart.get().getCartItems(), cart.get().getTotalPrice());
+        kafkaTemplate.send("orders", createOrderRequest.getUserId(), createOrderRequest);
+        cart.get().getCartItems().clear();
+        cart.get().setTotalPrice(BigDecimal.valueOf(0));
+        cartRepository.save(cart.get());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
