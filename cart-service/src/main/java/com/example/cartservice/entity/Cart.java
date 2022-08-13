@@ -1,8 +1,6 @@
 package com.example.cartservice.entity;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
@@ -14,6 +12,8 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @RedisHash
 public class Cart {
 
@@ -25,7 +25,6 @@ public class Cart {
     private String userLastName;
     private String email;
     private String address;
-    @Builder.Default
     private Set<CartItem> cartItems = new HashSet<>();
     private BigDecimal totalPrice;
 

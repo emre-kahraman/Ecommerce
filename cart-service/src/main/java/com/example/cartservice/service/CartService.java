@@ -52,8 +52,8 @@ public class CartService {
         else {
             Cart cart = Cart.builder().userId(userId).userName(customerKafka.getName())
                     .userLastName(customerKafka.getLastName()).email(customerKafka.getEmail())
-                    .address(customerKafka.getAddress()).totalPrice(BigDecimal.valueOf(0)).build();
-            cart.getCartItems().add(CartItem.builder().productId("1").productName("test").build());
+                    .address(customerKafka.getAddress()).cartItems(new HashSet<>()).totalPrice(BigDecimal.valueOf(0)).build();
+            //cart.getCartItems().add(CartItem.builder().productId("1").productName("test").build());
             cartRepository.save(cart);
         }
     }
@@ -61,10 +61,10 @@ public class CartService {
     @KafkaListener(topics = "products", groupId = "cart")
     public void productListener(@Payload AddItemToCartRequest addItemToCartRequest, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String userId){
         Optional<Cart> cart = cartRepository.getCartByUserId(userId);
-        CartItem cartItem = CartItem.builder().productId(addItemToCartRequest.getProductId())
-                .productName(addItemToCartRequest.getProductName())
-                .unitPrice(addItemToCartRequest.getUnitPrice())
-                .quantity(addItemToCartRequest.getQuantity()).build();
+        CartItem cartItem = new CartItem(addItemToCartRequest.getProductId()
+                , addItemToCartRequest.getProductName()
+                , addItemToCartRequest.getUnitPrice()
+                , addItemToCartRequest.getQuantity());
         cart.get().addCartItem(cartItem);
         cartRepository.save(cart.get());
     }
