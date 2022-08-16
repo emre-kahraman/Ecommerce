@@ -1,7 +1,7 @@
 package com.example.orderservice.service;
 
 import com.example.cartservice.dto.CreateOrderRequest;
-import com.example.orderservice.OrderDTO;
+import com.example.orderservice.dto.OrderDTO;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;

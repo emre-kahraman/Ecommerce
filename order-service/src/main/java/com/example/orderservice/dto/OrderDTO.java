@@ -1,4 +1,4 @@
-package com.example.orderservice;
+package com.example.orderservice.dto;
 
 import com.example.cartservice.entity.CartItem;
 import lombok.Builder;
