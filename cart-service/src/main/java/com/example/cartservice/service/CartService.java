@@ -46,16 +46,24 @@ public class CartService {
     @KafkaListener(topics = "customers", groupId = "cart")
     public void customerListener(@Payload CustomerKafka customerKafka, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String userId){
         if(customerKafka.getStatus().equals("Delete")){
-            Optional<Cart> cart = cartRepository.getCartByUserId(userId);
-            cartRepository.deleteById(cart.get().getId());
+            deleteCart(userId);
         }
         else {
-            Cart cart = Cart.builder().userId(userId).userName(customerKafka.getName())
-                    .userLastName(customerKafka.getLastName()).email(customerKafka.getEmail())
-                    .address(customerKafka.getAddress()).cartItems(new HashSet<>()).totalPrice(BigDecimal.valueOf(0)).build();
-            //cart.getCartItems().add(CartItem.builder().productId("1").productName("test").build());
-            cartRepository.save(cart);
+            createCart(customerKafka, userId);
         }
+    }
+
+    public Cart createCart(CustomerKafka customerKafka, String userId){
+        Cart cart = Cart.builder().userId(userId).userName(customerKafka.getName())
+                .userLastName(customerKafka.getLastName()).email(customerKafka.getEmail())
+                .address(customerKafka.getAddress()).cartItems(new HashSet<>()).totalPrice(BigDecimal.valueOf(0)).build();
+        Cart savedCart = cartRepository.save(cart);
+        return savedCart;
+    }
+
+    public void deleteCart(String userId){
+        Optional<Cart> cart = cartRepository.getCartByUserId(userId);
+        cartRepository.deleteById(cart.get().getId());
     }
 
     @KafkaListener(topics = "products", groupId = "cart")

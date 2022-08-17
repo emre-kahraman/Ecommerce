@@ -5,6 +5,7 @@ import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartRepository;
 import com.example.cartservice.service.CartService;
+import com.example.customerservice.dto.CustomerKafka;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,8 +22,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CartServiceTests {
@@ -66,6 +66,40 @@ public class CartServiceTests {
         assertEquals(responseEntity.getBody().getUserId(), cart.getUserId());
         assertEquals(responseEntity.getBody().getTotalPrice(), cart.getTotalPrice());
         assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+    }
+
+    @Test
+    public void itShouldCreateCart(){
+        CustomerKafka customerKafka = new CustomerKafka("test", "test"
+                , "test@gmail.com", "test", "Create");
+        String userId = "1";
+        Cart cart = Cart.builder().userId("1").userName("test")
+                .userLastName("test").email("test").cartItems(new HashSet<>())
+                .address("test").totalPrice(BigDecimal.valueOf(0)).build();
+
+        when(cartRepository.save(any())).thenReturn(cart);
+
+        Cart savedCart = cartService.createCart(customerKafka, userId);
+
+        verify(cartRepository).save(any());
+        assertEquals(savedCart.getUserId(), userId);
+        assertEquals(savedCart.getUserName(), customerKafka.getName());
+        assertEquals(savedCart.getCartItems().size(), 0);
+        assertEquals(savedCart.getTotalPrice(), BigDecimal.valueOf(0));
+    }
+
+    @Test
+    public void itShouldDeleteCart(){
+        Cart cart = Cart.builder().id("1").userId("1").userName("test")
+                .userLastName("test").email("test").cartItems(new HashSet<>())
+                .address("test").totalPrice(BigDecimal.valueOf(0)).build();
+
+        when(cartRepository.getCartByUserId(cart.getUserId())).thenReturn(Optional.of(cart));
+        doNothing().when(cartRepository).deleteById(cart.getId());
+
+        cartService.deleteCart(cart.getUserId());
+
+        verify(cartRepository).deleteById(cart.getUserId());
     }
 
     @Test
