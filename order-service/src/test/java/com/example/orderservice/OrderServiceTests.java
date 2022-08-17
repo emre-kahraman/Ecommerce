@@ -1,5 +1,6 @@
 package com.example.orderservice;
 
+import com.example.cartservice.dto.CreateOrderRequest;
 import com.example.orderservice.dto.OrderDTO;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.repository.OrderRepository;
@@ -12,11 +13,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,5 +61,20 @@ public class OrderServiceTests {
 
         assertEquals(responseEntity.getBody().size(), 1);
         assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+    }
+
+    @Test
+    public void itShouldCreateOrder(){
+        Order order = Order.builder().userId("1").userName("test").userLastName("test").email("test@gmail.com").address("test")
+                .cartItems(new HashSet<>()).date(new Date()).build();
+        CreateOrderRequest createOrderRequest = new CreateOrderRequest("1", "test"
+                , "test", "test@gmail.com", "test", new HashSet<>(), BigDecimal.valueOf(0));
+
+        when(orderRepository.save(any())).thenReturn(order);
+
+        Order savedOrder = orderService.createOrder(createOrderRequest);
+
+        assertEquals(savedOrder.getUserId(), createOrderRequest.getUserId());
+        assertEquals(savedOrder.getUserName(), createOrderRequest.getUserName());
     }
 }

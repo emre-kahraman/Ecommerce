@@ -36,10 +36,15 @@ public class OrderService {
 
     @KafkaListener(topics = "orders", groupId = "order")
     public void orderListener(@Payload CreateOrderRequest createOrderRequest){
+        createOrder(createOrderRequest);
+    }
+
+    public Order createOrder(CreateOrderRequest createOrderRequest){
         Order order = Order.builder().userId(createOrderRequest.getUserId()).userName(createOrderRequest.getUserName()).userLastName(createOrderRequest.getUserLastName())
                 .email(createOrderRequest.getEmail()).address(createOrderRequest.getAddress())
                 .cartItems(createOrderRequest.getCartItems()).totalPrice(createOrderRequest.getTotalPrice()).date(new Date()).build();
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        return savedOrder;
     }
 
     public OrderDTO convert(Order order){
