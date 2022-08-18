@@ -68,13 +68,18 @@ public class CartService {
 
     @KafkaListener(topics = "products", groupId = "cart")
     public void productListener(@Payload AddItemToCartRequest addItemToCartRequest, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String userId){
-        Optional<Cart> cart = cartRepository.getCartByUserId(userId);
+        addCartItem(addItemToCartRequest);
+    }
+
+    public Cart addCartItem(AddItemToCartRequest addItemToCartRequest){
+        Optional<Cart> cart = cartRepository.getCartByUserId(addItemToCartRequest.getUserId());
         CartItem cartItem = new CartItem(addItemToCartRequest.getProductId()
                 , addItemToCartRequest.getProductName()
                 , addItemToCartRequest.getUnitPrice()
                 , addItemToCartRequest.getQuantity());
         cart.get().addCartItem(cartItem);
-        cartRepository.save(cart.get());
+        Cart savedCart = cartRepository.save(cart.get());
+        return savedCart;
     }
 
     public ResponseEntity<Cart> removeCartItem(String userId, CartItem cartItem) {

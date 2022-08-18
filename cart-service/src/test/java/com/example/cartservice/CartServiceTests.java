@@ -6,6 +6,7 @@ import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartRepository;
 import com.example.cartservice.service.CartService;
 import com.example.customerservice.dto.CustomerKafka;
+import com.example.productservice.dto.AddItemToCartRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -100,6 +101,24 @@ public class CartServiceTests {
         cartService.deleteCart(cart.getUserId());
 
         verify(cartRepository).deleteById(cart.getUserId());
+    }
+
+    @Test
+    public void itShouldAddCartItem(){
+        Cart cart = Cart.builder().id("1").userId("1").userName("test")
+                .userLastName("test").email("test").cartItems(new HashSet<>())
+                .address("test").totalPrice(BigDecimal.valueOf(0)).build();
+
+        AddItemToCartRequest addItemToCartRequest = new AddItemToCartRequest("1","1","test",BigDecimal.valueOf(1),1);
+
+        when(cartRepository.getCartByUserId(cart.getUserId())).thenReturn(Optional.of(cart));
+        when(cartRepository.save(any())).thenReturn(cart);
+
+        Cart savedCart = cartService.addCartItem(addItemToCartRequest);
+
+        verify(cartRepository).save(any());
+        assertEquals(savedCart.getCartItems().size(), 1);
+        assertEquals(savedCart.getTotalPrice(), BigDecimal.valueOf(1));
     }
 
     @Test
