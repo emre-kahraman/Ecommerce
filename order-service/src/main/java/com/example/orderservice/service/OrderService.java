@@ -1,6 +1,7 @@
 package com.example.orderservice.service;
 
 import com.example.cartservice.dto.CreateOrderRequest;
+import com.example.orderservice.dto.CreateEmailRequest;
 import com.example.orderservice.dto.OrderDTO;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.repository.OrderRepository;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final KafkaTemplate<String, CreateEmailRequest> kafkaTemplate;
     public ResponseEntity<List<OrderDTO>> getOrders() {
         List<Order> orderList = orderRepository.findAll();
         List<OrderDTO> orderDTOList = new ArrayList<>();
@@ -40,16 +43,40 @@ public class OrderService {
     }
 
     public Order createOrder(CreateOrderRequest createOrderRequest){
-        Order order = Order.builder().userId(createOrderRequest.getUserId()).userName(createOrderRequest.getUserName()).userLastName(createOrderRequest.getUserLastName())
-                .email(createOrderRequest.getEmail()).address(createOrderRequest.getAddress())
-                .cartItems(createOrderRequest.getCartItems()).totalPrice(createOrderRequest.getTotalPrice()).date(new Date()).build();
+        Order order = Order.builder().userId(createOrderRequest.getUserId())
+                .userName(createOrderRequest.getUserName())
+                .userLastName(createOrderRequest.getUserLastName())
+                .email(createOrderRequest.getEmail())
+                .address(createOrderRequest.getAddress())
+                .cartItems(createOrderRequest.getCartItems())
+                .totalPrice(createOrderRequest.getTotalPrice())
+                .date(new Date()).build();
         Order savedOrder = orderRepository.save(order);
+        createEmailRequest(savedOrder);
         return savedOrder;
     }
 
+    public CreateEmailRequest createEmailRequest(Order order){
+        CreateEmailRequest createEmailRequest = CreateEmailRequest.builder().orderId(order.getId())
+                .userName(order.getUserName())
+                .userLastName(order.getUserLastName())
+                .email(order.getEmail())
+                .address(order.getAddress())
+                .cartItems(order.getCartItems())
+                .totalPrice(order.getTotalPrice())
+                .date(order.getDate()).build();
+        kafkaTemplate.send("emails", createEmailRequest.getOrderId(), createEmailRequest);
+        return createEmailRequest;
+    }
+
     public OrderDTO convert(Order order){
-        return OrderDTO.builder().userId(order.getUserId()).userName(order.getUserName()).userLastName(order.getUserLastName())
-                .email(order.getEmail()).address(order.getAddress())
-                .cartItems(order.getCartItems()).totalPrice(order.getTotalPrice()).date(order.getDate()).build();
+        return OrderDTO.builder().userId(order.getUserId())
+                .userName(order.getUserName())
+                .userLastName(order.getUserLastName())
+                .email(order.getEmail())
+                .address(order.getAddress())
+                .cartItems(order.getCartItems())
+                .totalPrice(order.getTotalPrice())
+                .date(order.getDate()).build();
     }
 }
