@@ -14,6 +14,7 @@
         <module>cart-service</module>
         <module>product-service</module>
         <module>order-service</module>
+        <module>email-service</module>
     </modules>
 
     <properties>
