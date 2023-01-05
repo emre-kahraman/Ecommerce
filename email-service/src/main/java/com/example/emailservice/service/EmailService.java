@@ -19,7 +19,7 @@ public class EmailService {
         sendEmail(createEmailRequest);
     }
 
-    private void sendEmail(CreateEmailRequest createEmailRequest) {
+    public void sendEmail(CreateEmailRequest createEmailRequest) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setFrom("noreply@ecommerce.com");
         mailMessage.setTo(createEmailRequest.getEmail());
