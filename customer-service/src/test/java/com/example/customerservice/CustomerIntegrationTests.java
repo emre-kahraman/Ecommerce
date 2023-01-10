@@ -13,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -34,8 +33,6 @@ import static org.mockito.Mockito.*;
 })
 public class CustomerIntegrationTests {
 
-    @Autowired
-    MongoTemplate mongoTemplate;
 
     @Autowired
     CustomerService customerService;
@@ -60,8 +57,9 @@ public class CustomerIntegrationTests {
                 .lastName("test2")
                 .email("test2@gmail.com")
                 .address("test2").build();
-        mongoTemplate.save(customer);
-        mongoTemplate.save(customer2);
+        customerRepository.deleteAll();
+        customerRepository.save(customer);
+        customerRepository.save(customer2);
     }
 
     @Test
