@@ -1,0 +1,8 @@
+spring:
+  redis:
+    host: localhost
+    port: 6370
+  kafka:
+    bootstrap-servers: localhost:9092
+test:
+  topic: orders
