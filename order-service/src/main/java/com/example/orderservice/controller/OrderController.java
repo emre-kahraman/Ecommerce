@@ -22,7 +22,12 @@ public class OrderController {
         return orderService.getOrders();
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderDTO> getOrdersById(String id){
+        return orderService.getOrderById(id);
+    }
+
+    @GetMapping("/getOrdersByUserId/{userId}")
     public ResponseEntity<List<OrderDTO>> getOrdersByUserId(String userId){
         return orderService.getOrdersByUserId(userId);
     }

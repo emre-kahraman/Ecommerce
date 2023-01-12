@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,14 @@ public class OrderService {
         List<OrderDTO> orderDTOList = new ArrayList<>();
         orderList.forEach(order -> orderDTOList.add(convert(order)));
         return new ResponseEntity<>(orderDTOList, HttpStatus.OK);
+    }
+
+    public ResponseEntity<OrderDTO> getOrderById(String id) {
+        Optional<Order> order = orderRepository.findById(id);
+        if(order.isEmpty())
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        OrderDTO orderDTO = convert(order.get());
+        return new ResponseEntity<>(orderDTO, HttpStatus.OK);
     }
 
     public ResponseEntity<List<OrderDTO>> getOrdersByUserId(String userId) {
