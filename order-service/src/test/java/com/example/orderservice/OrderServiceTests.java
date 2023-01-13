@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +51,19 @@ public class OrderServiceTests {
         ResponseEntity<List<OrderDTO>> responseEntity = orderService.getOrders();
 
         assertEquals(responseEntity.getBody().size(), orderList.size());
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+    }
+
+    @Test
+    public void itShouldGetOrderById(){
+        Order order = Order.builder().id("1").userId("1").userName("test").userLastName("test").email("test@gmail.com").address("test")
+                .cartItems(new HashSet<>()).date(new Date()).build();
+
+        when(orderRepository.findById(order.getUserId())).thenReturn(Optional.of(order));
+
+        ResponseEntity<OrderDTO> responseEntity = orderService.getOrderById(order.getId());
+
+        assertEquals(responseEntity.getBody().getUserId(), "1");
         assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
     }
 

@@ -61,6 +61,15 @@ public class OrderIntegrationTests {
     }
 
     @Test
+    public void itShouldGetOrderById(){
+
+        ResponseEntity<OrderDTO> responseEntity = orderService.getOrderById("1");
+
+        assertEquals(responseEntity.getBody().getUserId(), "1");
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+    }
+
+    @Test
     public void itShouldGetAllOrdersByUserId(){
 
         ResponseEntity<List<OrderDTO>> responseEntity = orderService.getOrdersByUserId("1");
