@@ -28,6 +28,11 @@ public class ProductController {
         return productService.getProduct(id);
     }
 
+    @GetMapping("/getProductsByCategory/{category}")
+    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String category){
+        return productService.getProductsByCategory(category);
+    }
+
     @PostMapping
     public ResponseEntity<ProductDTO> saveProduct(@RequestBody SaveProductRequest saveProductRequest){
         return productService.saveProduct(saveProductRequest);

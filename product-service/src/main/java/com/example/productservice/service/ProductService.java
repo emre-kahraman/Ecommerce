@@ -36,6 +36,15 @@ public class ProductService {
         return new ResponseEntity<>(productDTO, HttpStatus.OK);
     }
 
+    public ResponseEntity<List<ProductDTO>> getProductsByCategory(String category) {
+        Optional<List<Product>> productList = productRepository.getProductsByCategory(category);
+        if(productList.isEmpty())
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        List<ProductDTO> productDTOList = new ArrayList<>();
+        productList.get().forEach(product -> productDTOList.add(convert(product)));
+        return new ResponseEntity<>(productDTOList, HttpStatus.OK);
+    }
+
     public ResponseEntity<ProductDTO> saveProduct(SaveProductRequest saveProductRequest) {
         Product product = Product.builder().name(saveProductRequest.getName()).category(saveProductRequest.getCategory())
                 .category(saveProductRequest.getCategory()).price(saveProductRequest.getPrice()).build();
