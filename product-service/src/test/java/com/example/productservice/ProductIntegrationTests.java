@@ -76,6 +76,16 @@ public class ProductIntegrationTests {
     }
 
     @Test
+    public void itShouldGetProductsByCategory(){
+
+        ResponseEntity<List<ProductDTO>> responseEntity = productService.getProductsByCategory("test");
+
+        assertEquals(responseEntity.getBody().size(), 1);
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+
+    }
+
+    @Test
     public void itShouldSaveProduct(){
         SaveProductRequest saveProductRequest = SaveProductRequest.builder()
                 .name("test3").category("test3").price(BigDecimal.valueOf(1)).build();

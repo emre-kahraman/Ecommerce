@@ -66,6 +66,21 @@ public class ProductServiceTests {
     }
 
     @Test
+    public void itShouldGetProductsByCategory(){
+        Product product = Product.builder().name("test").category("test").price(BigDecimal.valueOf(1)).build();
+        Product product2 = Product.builder().name("test2").category("test").price(BigDecimal.valueOf(1)).build();
+        List<Product> productList = List.of(product, product2);
+
+        when(productRepository.getProductsByCategory(product.getCategory())).thenReturn(Optional.of(productList));
+
+        ResponseEntity<List<ProductDTO>> responseEntity = productService.getProductsByCategory(product.getCategory());
+
+        assertEquals(responseEntity.getBody().size(), productList.size());
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+
+    }
+
+    @Test
     public void itShouldSaveProduct(){
         SaveProductRequest saveProductRequest = SaveProductRequest.builder()
                 .name("test").category("test").price(BigDecimal.valueOf(1)).build();
