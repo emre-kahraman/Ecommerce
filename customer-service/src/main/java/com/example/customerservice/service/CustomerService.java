@@ -2,6 +2,7 @@ package com.example.customerservice.service;
 
 import com.example.customerservice.dto.CustomerDTO;
 import com.example.customerservice.dto.CustomerKafka;
+import com.example.customerservice.dto.CustomerState;
 import com.example.customerservice.dto.SaveCustomerRequest;
 import com.example.customerservice.entity.Customer;
 import com.example.customerservice.repository.CustomerRepository;
@@ -43,7 +44,7 @@ public class CustomerService {
                 .address(saveCustomerRequest.getAddress()).build();
         Customer savedCustomer = customerRepository.save(customer);
         CustomerKafka customerKafka = new CustomerKafka (savedCustomer.getName(), savedCustomer.getLastName()
-                , savedCustomer.getEmail(), savedCustomer.getAddress(), "Create");
+                , savedCustomer.getEmail(), savedCustomer.getAddress(), CustomerState.CREATE);
         kafkaTemplate.send("customers", savedCustomer.getId(), customerKafka);
         CustomerDTO customerDTO = convert(savedCustomer);
         System.out.println(savedCustomer.getId());
@@ -56,7 +57,7 @@ public class CustomerService {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         customerRepository.deleteById(id);
         CustomerKafka customerKafka = new CustomerKafka (customer.get().getName(), customer.get().getLastName(),
-                customer.get().getEmail(), customer.get().getAddress(), "Delete");
+                customer.get().getEmail(), customer.get().getAddress(), CustomerState.DELETE);
         kafkaTemplate.send("customers", customer.get().getId(), customerKafka);
         return new ResponseEntity<>(HttpStatus.OK);
     }

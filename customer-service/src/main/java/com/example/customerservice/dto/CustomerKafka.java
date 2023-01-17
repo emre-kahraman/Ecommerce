@@ -14,5 +14,5 @@ public class CustomerKafka {
     private String lastName;
     private String email;
     private String address;
-    private String status;
+    private CustomerState customerState;
 }
