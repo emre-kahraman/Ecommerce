@@ -6,6 +6,7 @@ import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartRepository;
 import com.example.cartservice.service.CartService;
 import com.example.customerservice.dto.CustomerKafka;
+import com.example.customerservice.dto.CustomerState;
 import com.example.productservice.dto.AddItemToCartRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +73,7 @@ public class CartServiceTests {
     @Test
     public void itShouldCreateCart(){
         CustomerKafka customerKafka = new CustomerKafka("test", "test"
-                , "test@gmail.com", "test", "Create");
+                , "test@gmail.com", "test", CustomerState.CREATE);
         String userId = "1";
         Cart cart = Cart.builder().userId("1").userName("test")
                 .userLastName("test").email("test").cartItems(new HashSet<>())
@@ -101,6 +102,30 @@ public class CartServiceTests {
         cartService.deleteCart(cart.getUserId());
 
         verify(cartRepository).deleteById(cart.getUserId());
+    }
+
+    @Test
+    public void itShouldUpdateCart(){
+        CustomerKafka customerKafka = new CustomerKafka("test2", "test2"
+                , "test@gmail.com", "test2", CustomerState.UPDATE);
+        String userId = "1";
+        Cart cart = Cart.builder().userId("1").userName("test")
+                .userLastName("test").email("test").cartItems(new HashSet<>())
+                .address("test").totalPrice(BigDecimal.valueOf(0)).build();
+        Cart updatedCart = Cart.builder().userId("1").userName("test2")
+                .userLastName("test2").email("test2").cartItems(new HashSet<>())
+                .address("test2").totalPrice(BigDecimal.valueOf(0)).build();
+
+        when(cartRepository.findById(userId)).thenReturn(Optional.of(cart));
+        when(cartRepository.save(any())).thenReturn(updatedCart);
+
+        Cart savedCart = cartService.updateCart(customerKafka, userId);
+
+        verify(cartRepository).save(any());
+        assertEquals(savedCart.getUserId(), userId);
+        assertEquals(savedCart.getUserName(), customerKafka.getName());
+        assertEquals(savedCart.getUserLastName(), customerKafka.getLastName());
+        assertEquals(savedCart.getTotalPrice(), BigDecimal.valueOf(0));
     }
 
     @Test

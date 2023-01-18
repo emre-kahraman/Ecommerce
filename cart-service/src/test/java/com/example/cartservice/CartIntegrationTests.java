@@ -1,12 +1,12 @@
 package com.example.cartservice;
 
-import com.example.cartservice.config.KafkaConfig;
 import com.example.cartservice.dto.CreateOrderRequest;
 import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartRepository;
 import com.example.cartservice.service.CartService;
 import com.example.customerservice.dto.CustomerKafka;
+import com.example.customerservice.dto.CustomerState;
 import com.example.productservice.dto.AddItemToCartRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,26 +15,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.event.annotation.AfterTestClass;
-import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import redis.embedded.RedisServer;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -105,7 +98,7 @@ public class CartIntegrationTests {
     @Test
     public void itShouldCreateCart(){
         CustomerKafka customerKafka = new CustomerKafka("test", "test"
-                , "test@gmail.com", "test", "Create");
+                , "test@gmail.com", "test", CustomerState.CREATE);
         String userId = "1";
 
         Cart savedCart = cartService.createCart(customerKafka, userId);
@@ -122,6 +115,20 @@ public class CartIntegrationTests {
         cartService.deleteCart("1");
 
         assertEquals(cartRepository.findById("1"), Optional.empty());
+    }
+
+    @Test
+    public void itShouldUpdateCart(){
+        CustomerKafka customerKafka = new CustomerKafka("test3", "test3"
+                , "test3@gmail.com", "test3", CustomerState.UPDATE);
+        String userId = "1";
+
+        Cart savedCart = cartService.updateCart(customerKafka, userId);
+
+        assertEquals(savedCart.getUserId(), userId);
+        assertEquals(savedCart.getUserName(), customerKafka.getName());
+        assertEquals(savedCart.getCartItems().size(), 0);
+        assertEquals(savedCart.getTotalPrice(), BigDecimal.valueOf(0));
     }
 
     @Test
