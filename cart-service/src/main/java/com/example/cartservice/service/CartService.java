@@ -5,6 +5,7 @@ import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartRepository;
 import com.example.customerservice.dto.CustomerKafka;
+import com.example.customerservice.dto.CustomerState;
 import com.example.productservice.dto.AddItemToCartRequest;
 import io.lettuce.core.dynamic.annotation.Key;
 import lombok.RequiredArgsConstructor;
@@ -45,11 +46,16 @@ public class CartService {
 
     @KafkaListener(topics = "customers", groupId = "cart")
     public void customerListener(@Payload CustomerKafka customerKafka, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String userId){
-        if(customerKafka.getStatus().equals("Delete")){
-            deleteCart(userId);
-        }
-        else {
-            createCart(customerKafka, userId);
+        switch (customerKafka.getCustomerState()) {
+            case CREATE:
+                createCart(customerKafka, userId);
+                break;
+            case DELETE:
+                deleteCart(userId);
+                break;
+            case UPDATE:
+                updateCart(customerKafka, userId);
+                break;
         }
     }
 
@@ -64,6 +70,18 @@ public class CartService {
     public void deleteCart(String userId){
         Optional<Cart> cart = cartRepository.getCartByUserId(userId);
         cartRepository.deleteById(cart.get().getId());
+    }
+
+    public Cart updateCart(CustomerKafka customerKafka, String userId){
+        Optional<Cart> cart = cartRepository.findById(userId);
+        if(cart.isEmpty())
+            return null;
+        cart.get().setUserName(customerKafka.getName());
+        cart.get().setUserLastName(customerKafka.getLastName());
+        cart.get().setEmail(customerKafka.getEmail());
+        cart.get().setAddress(customerKafka.getAddress());
+        Cart savedCart = cartRepository.save(cart.get());
+        return savedCart;
     }
 
     @KafkaListener(topics = "products", groupId = "cart")
