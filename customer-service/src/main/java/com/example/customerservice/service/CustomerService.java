@@ -51,6 +51,22 @@ public class CustomerService {
         return new ResponseEntity<>(customerDTO, HttpStatus.CREATED);
     }
 
+    public ResponseEntity<CustomerDTO> updateCustomer(String userId, SaveCustomerRequest saveCustomerRequest) {
+        Optional<Customer> customer = customerRepository.findById(userId);
+        if(customer.isEmpty())
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        customer.get().setName(saveCustomerRequest.getName());
+        customer.get().setLastName(saveCustomerRequest.getLastName());
+        customer.get().setAddress(saveCustomerRequest.getAddress());
+        customer.get().setEmail(saveCustomerRequest.getEmail());
+        Customer savedCustomer = customerRepository.save(customer.get());
+        CustomerKafka customerKafka = new CustomerKafka (savedCustomer.getName(), savedCustomer.getLastName()
+                , savedCustomer.getEmail(), savedCustomer.getAddress(), CustomerState.UPDATE);
+        kafkaTemplate.send("customers", savedCustomer.getId(), customerKafka);
+        CustomerDTO customerDTO = convert(savedCustomer);
+        return new ResponseEntity<>(customerDTO, HttpStatus.OK);
+    }
+
     public ResponseEntity<HttpStatus> deleteCustomer(String id) {
         Optional<Customer> customer = customerRepository.findById(id);
         if(customer.isEmpty())

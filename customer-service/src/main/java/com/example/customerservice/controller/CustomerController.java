@@ -31,6 +31,11 @@ public class CustomerController {
         return customerService.saveCustomer(saveCustomerRequest);
     }
 
+    @PutMapping("/{userId}")
+    public ResponseEntity<CustomerDTO> updateCustomer(@PathVariable String userId, @RequestBody SaveCustomerRequest saveCustomerRequest){
+        return customerService.updateCustomer(userId, saveCustomerRequest);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteCustomer(@PathVariable String id){
         return customerService.deleteCustomer(id);
