@@ -98,6 +98,22 @@ public class CustomerIntegrationTests {
     }
 
     @Test
+    public void itShouldUpdateCustomer(){
+        SaveCustomerRequest saveCustomerRequest = SaveCustomerRequest.builder()
+                .name("test3")
+                .lastName("test3")
+                .email("test3@gmail.com")
+                .address("test3").build();
+
+        when(kafkaTemplate.send(eq("customers"), any(), any())).thenReturn(null);
+
+        ResponseEntity<CustomerDTO> responseEntity = customerService.updateCustomer("1", saveCustomerRequest);
+
+        assertEquals(responseEntity.getBody().getName(), saveCustomerRequest.getName());
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+    }
+
+    @Test
     public void itShouldDeleteCustomer(){
 
         when(kafkaTemplate.send(eq("customers"), any(), any())).thenReturn(null);

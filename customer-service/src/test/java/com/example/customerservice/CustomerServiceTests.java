@@ -101,6 +101,31 @@ public class CustomerServiceTests {
     }
 
     @Test
+    public void itShouldUpdateCustomer(){
+        SaveCustomerRequest saveCustomerRequest = SaveCustomerRequest.builder()
+                .name("test")
+                .lastName("test")
+                .email("test@gmail.com")
+                .address("test").build();
+        Customer customer = Customer.builder()
+                .id("1")
+                .name("test2")
+                .lastName("test2")
+                .email("test2@gmail.com")
+                .address("test2").build();
+
+        when(customerRepository.save(any())).thenReturn(customer);
+        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+        when(kafkaTemplate.send(eq("customers"), any(), any())).thenReturn(null);
+
+        ResponseEntity<CustomerDTO> responseEntity = customerService.updateCustomer(customer.getId(), saveCustomerRequest);
+
+        verify(customerRepository).save(any());
+        assertEquals(responseEntity.getBody().getName(), customer.getName());
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+    }
+
+    @Test
     public void itShouldDeleteCustomer(){
 
         Customer customer = Customer.builder()
