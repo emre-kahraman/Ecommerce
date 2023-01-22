@@ -54,6 +54,18 @@ public class ProductService {
         return new ResponseEntity<>(productDTO, HttpStatus.CREATED);
     }
 
+    public ResponseEntity<ProductDTO> updateProduct(String productId, SaveProductRequest saveProductRequest) {
+        Optional<Product> product = productRepository.findById(productId);
+        if(product.isEmpty())
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        product.get().setName(saveProductRequest.getName());
+        product.get().setCategory(saveProductRequest.getCategory());
+        product.get().setPrice(saveProductRequest.getPrice());
+        Product savedProduct = productRepository.save(product.get());
+        ProductDTO productDTO = convert(savedProduct);
+        return new ResponseEntity<>(productDTO, HttpStatus.OK);
+    }
+
     public ResponseEntity<HttpStatus> deleteProduct(String id) {
         if(!productRepository.existsById(id))
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

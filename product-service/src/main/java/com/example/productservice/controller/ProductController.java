@@ -38,6 +38,11 @@ public class ProductController {
         return productService.saveProduct(saveProductRequest);
     }
 
+    @PutMapping("/{productId}")
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable String productId, @RequestBody SaveProductRequest saveProductRequest){
+        return productService.updateProduct(productId, saveProductRequest);
+    }
+
     @PostMapping("/addItemToCart")
     public ResponseEntity<HttpStatus> addItemToCart(@RequestBody AddItemToCartRequest addItemToCartRequest){
         return productService.addItemToCart(addItemToCartRequest);
