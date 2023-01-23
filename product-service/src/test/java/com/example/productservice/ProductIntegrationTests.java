@@ -98,6 +98,18 @@ public class ProductIntegrationTests {
     }
 
     @Test
+    public void itShouldUpdateProduct(){
+        SaveProductRequest saveProductRequest = SaveProductRequest.builder()
+                .name("test3").category("test3").price(BigDecimal.valueOf(1)).build();
+
+        ResponseEntity<ProductDTO> responseEntity = productService.updateProduct("1", saveProductRequest);
+
+        assertEquals(responseEntity.getBody().getName(), "test3");
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+
+    }
+
+    @Test
     public void itShouldDeleteProduct(){
 
         ResponseEntity<HttpStatus> responseEntity = productService.deleteProduct("1");

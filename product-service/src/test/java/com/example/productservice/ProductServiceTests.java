@@ -96,6 +96,22 @@ public class ProductServiceTests {
     }
 
     @Test
+    public void itShouldUpdateProduct(){
+        SaveProductRequest saveProductRequest = SaveProductRequest.builder()
+                .name("test").category("test").price(BigDecimal.valueOf(1)).build();
+        Product product = Product.builder().id("1").name("test").category("test").price(BigDecimal.valueOf(1)).build();
+
+        when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
+        when(productRepository.save(any())).thenReturn(product);
+
+        ResponseEntity<ProductDTO> responseEntity = productService.updateProduct(product.getId(), saveProductRequest);
+
+        assertEquals(responseEntity.getBody().getName(), product.getName());
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+
+    }
+
+    @Test
     public void itShouldDeleteProduct(){
         Product product = Product.builder().id("1").name("test").category("test").price(BigDecimal.valueOf(1)).build();
 
