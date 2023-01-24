@@ -16,6 +16,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
@@ -26,9 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@MockBean({
-        KafkaConfig.class
-})
+@DirtiesContext
+@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
 public class ProductIntegrationTests {
 
     @Autowired
@@ -37,7 +38,7 @@ public class ProductIntegrationTests {
     @Autowired
     ProductRepository productRepository;
 
-    @MockBean
+    @Autowired
     KafkaTemplate<String, AddItemToCartRequest> kafkaTemplate;
 
     @BeforeEach
@@ -117,5 +118,15 @@ public class ProductIntegrationTests {
         assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
         assertEquals(productRepository.findById("1"), Optional.empty());
 
+    }
+
+    @Test
+    public void itShouldAddCartItem(){
+
+        AddItemToCartRequest addItemToCartRequest = new AddItemToCartRequest("1","1","test",BigDecimal.valueOf(1),1);
+
+        ResponseEntity<HttpStatus> responseEntity = productService.addItemToCart(addItemToCartRequest);
+
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
     }
 }
