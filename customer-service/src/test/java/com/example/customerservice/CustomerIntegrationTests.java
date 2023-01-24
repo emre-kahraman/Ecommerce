@@ -16,6 +16,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
@@ -28,9 +30,8 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@MockBean({
-        KafkaProducerConfig.class
-})
+@DirtiesContext
+@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
 public class CustomerIntegrationTests {
 
 
@@ -40,7 +41,7 @@ public class CustomerIntegrationTests {
     @Autowired
     CustomerRepository customerRepository;
 
-    @MockBean
+    @Autowired
     KafkaTemplate<String, CustomerKafka> kafkaTemplate;
 
     @BeforeEach
@@ -89,7 +90,6 @@ public class CustomerIntegrationTests {
                 .email("test3@gmail.com")
                 .address("test3").build();
 
-        when(kafkaTemplate.send(eq("customers"), any(), any())).thenReturn(null);
 
         ResponseEntity<CustomerDTO> responseEntity = customerService.saveCustomer(saveCustomerRequest);
 
@@ -105,7 +105,6 @@ public class CustomerIntegrationTests {
                 .email("test3@gmail.com")
                 .address("test3").build();
 
-        when(kafkaTemplate.send(eq("customers"), any(), any())).thenReturn(null);
 
         ResponseEntity<CustomerDTO> responseEntity = customerService.updateCustomer("1", saveCustomerRequest);
 
@@ -116,7 +115,6 @@ public class CustomerIntegrationTests {
     @Test
     public void itShouldDeleteCustomer(){
 
-        when(kafkaTemplate.send(eq("customers"), any(), any())).thenReturn(null);
 
         ResponseEntity<HttpStatus> responseEntity = customerService.deleteCustomer("1");
 
