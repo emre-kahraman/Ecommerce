@@ -3,6 +3,9 @@ server:
 spring:
   kafka:
     bootstrap-servers: localhost:9092
+    topic: products
+    topic2: updatedProducts
+    topic3: deletedProducts
   data:
     mongodb:
       host: localhost

@@ -1,8 +1,6 @@
 package com.example.productservice.service;
 
-import com.example.productservice.dto.AddItemToCartRequest;
-import com.example.productservice.dto.ProductDTO;
-import com.example.productservice.dto.SaveProductRequest;
+import com.example.productservice.dto.*;
 import com.example.productservice.entity.Product;
 import com.example.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +18,9 @@ import java.util.Optional;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final KafkaTemplate<String, AddItemToCartRequest> kafkaTemplate;
+    private final KafkaTemplate<String, AddItemToCartRequest> productTemplate;
+    private final KafkaTemplate<String, UpdateCartItemRequest> updatedProductTemplate;
+    private final KafkaTemplate<String, DeleteCartItemRequest> deletedProductTemplate;
     public ResponseEntity<List<ProductDTO>> getProducts() {
         List<Product> productList = productRepository.findAll();
         List<ProductDTO> productDTOList = new ArrayList<>();
@@ -62,6 +62,8 @@ public class ProductService {
         product.get().setCategory(saveProductRequest.getCategory());
         product.get().setPrice(saveProductRequest.getPrice());
         Product savedProduct = productRepository.save(product.get());
+        updatedProductTemplate.send("updatedProducts", savedProduct.getId(),
+                new UpdateCartItemRequest(savedProduct.getId(), savedProduct.getName(), savedProduct.getPrice()));
         ProductDTO productDTO = convert(savedProduct);
         return new ResponseEntity<>(productDTO, HttpStatus.OK);
     }
@@ -70,6 +72,7 @@ public class ProductService {
         if(!productRepository.existsById(id))
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         productRepository.deleteById(id);
+        deletedProductTemplate.send("deletedProducts", id, new DeleteCartItemRequest(id));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -81,7 +84,7 @@ public class ProductService {
     public ResponseEntity<HttpStatus> addItemToCart(AddItemToCartRequest addItemToCartRequest) {
         if(!productRepository.existsById(addItemToCartRequest.getProductId()))
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        kafkaTemplate.send("products", addItemToCartRequest.getUserId(), addItemToCartRequest);
+        productTemplate.send("products", addItemToCartRequest.getUserId(), addItemToCartRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
