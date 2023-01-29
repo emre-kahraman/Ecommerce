@@ -103,6 +103,7 @@ public class ProductServiceTests {
 
         when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
         when(productRepository.save(any())).thenReturn(product);
+        when(kafkaTemplate.send(eq("updatedProducts"), any(), any())).thenReturn(null);
 
         ResponseEntity<ProductDTO> responseEntity = productService.updateProduct(product.getId(), saveProductRequest);
 
@@ -117,6 +118,7 @@ public class ProductServiceTests {
 
         when(productRepository.existsById(product.getId())).thenReturn(true);
         doNothing().when(productRepository).deleteById(product.getId());
+        when(kafkaTemplate.send(eq("deletedProducts"), any(), any())).thenReturn(null);
 
         ResponseEntity<HttpStatus> responseEntity = productService.deleteProduct(product.getId());
 
