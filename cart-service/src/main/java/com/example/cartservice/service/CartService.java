@@ -7,6 +7,8 @@ import com.example.cartservice.repository.CartRepository;
 import com.example.customerservice.dto.CustomerKafka;
 import com.example.customerservice.dto.CustomerState;
 import com.example.productservice.dto.AddItemToCartRequest;
+import com.example.productservice.dto.DeleteCartItemRequest;
+import com.example.productservice.dto.UpdateCartItemRequest;
 import io.lettuce.core.dynamic.annotation.Key;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -89,6 +92,16 @@ public class CartService {
         addCartItem(addItemToCartRequest);
     }
 
+    @KafkaListener(topics = "products", groupId = "cart")
+    public void updatedProductListener(@Payload UpdateCartItemRequest updateCartItemRequest, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String productId){
+        updateCartItem(updateCartItemRequest);
+    }
+
+    @KafkaListener(topics = "products", groupId = "cart")
+    public void deletedProductListener(@Payload DeleteCartItemRequest deleteCartItemRequest, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String productId){
+        deleteCartItem(deleteCartItemRequest);
+    }
+
     public Cart addCartItem(AddItemToCartRequest addItemToCartRequest){
         Optional<Cart> cart = cartRepository.getCartByUserId(addItemToCartRequest.getUserId());
         CartItem cartItem = new CartItem(addItemToCartRequest.getProductId()
@@ -98,6 +111,30 @@ public class CartService {
         cart.get().addCartItem(cartItem);
         Cart savedCart = cartRepository.save(cart.get());
         return savedCart;
+    }
+
+    public void updateCartItem(UpdateCartItemRequest updateCartItemRequest){
+        Stream<Cart> cart = (Stream<Cart>) cartRepository.findAll();
+        cart.forEach(c -> {
+            c.getCartItems().stream().forEach(cartItem -> {
+                if(cartItem.getProductId().equals(updateCartItemRequest.getProductId())){
+                    c.updateCartItem(cartItem, updateCartItemRequest);
+                }
+                cartRepository.save(c);
+            });
+        });
+    }
+
+    public void deleteCartItem(DeleteCartItemRequest deleteCartItemRequest){
+        Stream<Cart> cart = (Stream<Cart>) cartRepository.findAll();
+        cart.forEach(c -> {
+            c.getCartItems().stream().forEach(cartItem -> {
+                if(cartItem.getProductId().equals(deleteCartItemRequest.getProductId())){
+                    c.removeCartItem(cartItem);
+                }
+                cartRepository.save(c);
+            });
+        });
     }
 
     public ResponseEntity<Cart> removeCartItem(String userId, CartItem cartItem) {
