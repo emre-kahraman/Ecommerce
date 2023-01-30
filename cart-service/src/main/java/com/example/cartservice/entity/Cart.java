@@ -1,5 +1,6 @@
 package com.example.cartservice.entity;
 
+import com.example.productservice.dto.UpdateCartItemRequest;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
@@ -36,5 +37,13 @@ public class Cart {
     public void removeCartItem(CartItem cartItem){
         cartItems.remove(cartItem);
         totalPrice = totalPrice.subtract(cartItem.getUnitPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+    }
+
+    public void updateCartItem(CartItem cartItem, UpdateCartItemRequest updateCartItemRequest){
+        totalPrice = totalPrice.subtract(cartItem.getUnitPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+        cartItem.setProductId(updateCartItemRequest.getProductId());
+        cartItem.setProductName(updateCartItemRequest.getProductName());
+        cartItem.setUnitPrice(updateCartItemRequest.getUnitPrice());
+        totalPrice = totalPrice.add(cartItem.getUnitPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
     }
 }
