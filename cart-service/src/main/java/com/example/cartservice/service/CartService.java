@@ -22,7 +22,9 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -113,16 +115,17 @@ public class CartService {
         return savedCart;
     }
 
-    public void updateCartItem(UpdateCartItemRequest updateCartItemRequest){
-        Stream<Cart> cart = (Stream<Cart>) cartRepository.findAll();
-        cart.forEach(c -> {
+    public List<Cart> updateCartItem(UpdateCartItemRequest updateCartItemRequest){
+        List<Cart> cartList = new ArrayList<>();
+        cartRepository.findAll().forEach(c -> {
             c.getCartItems().stream().forEach(cartItem -> {
                 if(cartItem.getProductId().equals(updateCartItemRequest.getProductId())){
                     c.updateCartItem(cartItem, updateCartItemRequest);
                 }
-                cartRepository.save(c);
             });
+            cartList.add(cartRepository.save(c));
         });
+        return cartList;
     }
 
     public void deleteCartItem(DeleteCartItemRequest deleteCartItemRequest){
@@ -132,8 +135,8 @@ public class CartService {
                 if(cartItem.getProductId().equals(deleteCartItemRequest.getProductId())){
                     c.removeCartItem(cartItem);
                 }
-                cartRepository.save(c);
             });
+            cartRepository.save(c);
         });
     }
 
