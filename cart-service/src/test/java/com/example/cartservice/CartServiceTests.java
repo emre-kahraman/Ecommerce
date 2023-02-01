@@ -8,6 +8,7 @@ import com.example.cartservice.service.CartService;
 import com.example.customerservice.dto.CustomerKafka;
 import com.example.customerservice.dto.CustomerState;
 import com.example.productservice.dto.AddItemToCartRequest;
+import com.example.productservice.dto.UpdateCartItemRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +20,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -147,6 +149,38 @@ public class CartServiceTests {
     }
 
     @Test
+    public void itShouldUpdateCartItemForAllCarts(){
+        Cart cart = Cart.builder().id("1").userId("1").userName("test")
+                .userLastName("test").email("test").cartItems(new HashSet<>())
+                .address("test").totalPrice(BigDecimal.valueOf(0)).build();
+        Cart cart2 = Cart.builder().id("2").userId("2").userName("test2")
+                .userLastName("test2").email("test2").cartItems(new HashSet<>())
+                .address("test2").totalPrice(BigDecimal.valueOf(0)).build();
+        CartItem cartItem = CartItem.builder().productId("1").
+                productName("test")
+                .unitPrice(BigDecimal.valueOf(10))
+                .quantity(1).build();
+        CartItem cartItem2 = CartItem.builder().productId("1").
+                productName("test")
+                .unitPrice(BigDecimal.valueOf(10))
+                .quantity(1).build();
+        cart.addCartItem(cartItem);
+        cart2.addCartItem(cartItem2);
+
+        UpdateCartItemRequest updateCartItemRequest = new UpdateCartItemRequest("1","test2",BigDecimal.valueOf(2));
+
+        when(cartRepository.findAll()).thenReturn(List.of(cart, cart2));
+        when(cartRepository.save(cart)).thenReturn(cart);
+        when(cartRepository.save(cart2)).thenReturn(cart);
+
+        List<Cart> cartList = cartService.updateCartItem(updateCartItemRequest);
+
+        assertEquals(cartList.size(), 2);
+        assertEquals(cartList.get(0).getTotalPrice(), BigDecimal.valueOf(2));
+        assertEquals(cartList.get(1).getTotalPrice(), BigDecimal.valueOf(2));
+    }
+
+    @Test
     public void itShouldRemoveCartItem(){
         Cart cart = Cart.builder().userId("1").userName("test")
                 .userLastName("test").email("test")
@@ -203,6 +237,25 @@ public class CartServiceTests {
 
         assertEquals(cart.getCartItems().contains(cartItem), false);
         assertEquals(cart.getTotalPrice(), BigDecimal.valueOf(0));
+    }
+
+    @Test
+    public void itShouldUpdateCartItem(){
+        Cart cart = Cart.builder().id("1").userId("1").userName("test")
+                .userLastName("test").email("test").cartItems(new HashSet<>())
+                .address("test").totalPrice(BigDecimal.valueOf(0)).build();
+        CartItem cartItem = CartItem.builder().productId("1").
+                productName("test")
+                .unitPrice(BigDecimal.valueOf(10))
+                .quantity(1).build();
+        cart.addCartItem(cartItem);
+
+        UpdateCartItemRequest updateCartItemRequest = new UpdateCartItemRequest("2","test2",BigDecimal.valueOf(2));
+
+        cart.updateCartItem(cartItem, updateCartItemRequest);
+
+        assertEquals(cart.getCartItems().size(), 1);
+        assertEquals(cart.getTotalPrice(), BigDecimal.valueOf(2));
     }
 
     @Test
