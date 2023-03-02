@@ -128,16 +128,17 @@ public class CartService {
         return cartList;
     }
 
-    public void deleteCartItem(DeleteCartItemRequest deleteCartItemRequest){
-        Stream<Cart> cart = (Stream<Cart>) cartRepository.findAll();
-        cart.forEach(c -> {
-            c.getCartItems().stream().forEach(cartItem -> {
+    public List<Cart> deleteCartItem(DeleteCartItemRequest deleteCartItemRequest){
+        List<Cart> cartList = new ArrayList<>();
+        cartRepository.findAll().forEach(c -> {
+            c.getCartItems().forEach(cartItem -> {
                 if(cartItem.getProductId().equals(deleteCartItemRequest.getProductId())){
                     c.removeCartItem(cartItem);
                 }
             });
-            cartRepository.save(c);
+            cartList.add(cartRepository.save(c));
         });
+        return cartList;
     }
 
     public ResponseEntity<Cart> removeCartItem(String userId, CartItem cartItem) {
